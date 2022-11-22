@@ -50,6 +50,12 @@ public class QuestService {
         return answerRepository.findById(answerId).orElse(null);
     }
 
+    public void setAvailableQuest(RequestAdapter requestAdapter, long questId) {
+        final Quest quest = findQuest(questId);
+        final RequestAttributes requestAttributes = new RequestAttributes(requestAdapter);
+        requestAttributes.setAvailableQuest(new QuestDto(quest.getName(), quest.getDescription(), false));
+    }
+
     public void startQuest(RequestAdapter requestAdapter, SessionAdapter sessionAdapter, long questId)
             throws ServiceException {
 

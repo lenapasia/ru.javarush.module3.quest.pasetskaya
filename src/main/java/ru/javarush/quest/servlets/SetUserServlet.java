@@ -3,6 +3,7 @@ package ru.javarush.quest.servlets;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import ru.javarush.quest.entities.User;
+import ru.javarush.quest.services.QuestService;
 import ru.javarush.quest.services.UserService;
 import ru.javarush.quest.services.util.SessionAttributes;
 import ru.javarush.quest.util.JspNames;
@@ -20,12 +21,14 @@ public class SetUserServlet extends ApplicationServlet {
     private static final Logger log = LogManager.getLogger(SetUserServlet.class);
 
     private UserService userService;
+    private QuestService questService;
 
     @Override
     public void init() throws ServletException {
         super.init();
 
         userService = getApplicationContext().getService(UserService.class);
+        questService = getApplicationContext().getService(QuestService.class);
     }
 
     @Override
@@ -39,6 +42,9 @@ public class SetUserServlet extends ApplicationServlet {
         restartSession(request);
 
         saveInSession(request, user);
+
+        final long questId = 1L;
+        questService.setAvailableQuest(createRequestAdapter(request), questId);
 
         redirectToStartQuestPage(request, response);
     }
