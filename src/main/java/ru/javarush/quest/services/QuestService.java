@@ -1,5 +1,6 @@
 package ru.javarush.quest.services;
 
+import lombok.AllArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import ru.javarush.quest.dtos.AnswerDto;
@@ -10,10 +11,12 @@ import ru.javarush.quest.repositories.AnswerRepository;
 import ru.javarush.quest.repositories.QuestRepository;
 import ru.javarush.quest.repositories.QuestionRepository;
 import ru.javarush.quest.repositories.UserRepository;
-import ru.javarush.quest.util.SessionAttributesWrapper;
+import ru.javarush.quest.services.adapters.RequestAdapter;
+import ru.javarush.quest.services.adapters.SessionAdapter;
+import ru.javarush.quest.services.exceptions.ServiceException;
+import ru.javarush.quest.services.util.RequestAttributes;
+import ru.javarush.quest.services.util.SessionAttributes;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,57 +38,134 @@ public class QuestService {
 
     private final UserRepository userRepository;
 
-    public Quest findQuest(long questId) {
+    private Quest findQuest(long questId) {
         return questRepository.findById(questId).orElse(null);
     }
 
-    public Question findQuestion(long questionId) {
+    private Question findQuestion(long questionId) {
         return questionRepository.findById(questionId).orElse(null);
     }
 
-    public Answer findAnswer(long answerId) {
+    private Answer findAnswer(long answerId) {
         return answerRepository.findById(answerId).orElse(null);
     }
 
-    public void applyNextQuestion(HttpServletRequest request, Quest quest, long questionId,
-                                              String questionNotFoundErrorMessage,
-                                              String answerNotFoundErrorMessage) throws ServletException {
-        Question question = questionRepository.findById(questionId).orElse(null);
+    public void startQuest(RequestAdapter requestAdapter, SessionAdapter sessionAdapter, long questId)
+            throws ServiceException {
+
+        final SessionAttributes sessionAttributes = new SessionAttributes(sessionAdapter);
+
+        clearSession(sessionAttributes);
+
+        final Quest quest = findQuest(questId);
+        if (quest == null)
+            throw new ServiceException("Quest not found");
+
+        applyNextQuestion(new ApplyNextQuestionParams(requestAdapter, sessionAdapter, quest, quest.getFirstQuestionId(),
+                "Malformed quest: first question not found",
+                "Malformed quest: answers for first question not found"));
+
+        sessionAttributes.setQuestId(questId);
+
+        log.info("Quest [id='{}'] has been started", questId);
+    }
+
+    private void clearSession(SessionAttributes sessionAttributes) {
+        sessionAttributes.setQuestionId(null);
+        sessionAttributes.setQuestId(null);
+    }
+
+    public void applyAnswer(RequestAdapter requestAdapter, SessionAdapter sessionAdapter, long answerId)
+            throws ServiceException {
+
+        final SessionAttributes sessionAttributes = new SessionAttributes(sessionAdapter);
+
+        final Long questionId = sessionAttributes.getQuestionId();
+        if (questionId == null)
+            throw new ServiceException("Has no active question.");
+
+        final Quest quest = findQuest(sessionAttributes.getQuestId());
+
+        final Question question = findQuestion(questionId);
         if (question == null)
-            throw new ServletException(questionNotFoundErrorMessage);
+            throw new ServiceException("Question doesn't exist.");
 
-        List<Answer> answers = new ArrayList<>();
+        if (!question.hasAnswer(answerId))
+            throw new ServiceException("Answer doesn't belong to question.");
 
-        SessionAttributesWrapper sessionWrapper = new SessionAttributesWrapper(request);
+        final Answer answer = findAnswer(answerId);
+
+        if (answer == null)
+            throw new ServiceException("Answer not found.");
+
+        final boolean completed = applyNextQuestion(new ApplyNextQuestionParams(
+                requestAdapter, sessionAdapter, quest, answer.getNextQuestionId(),
+                "Next question not found.",
+                "Next answer not found."));
+
+        if (!completed) {
+            log.debug("Applied answer [id='{}'] to question [id='{}']: next question id = '{}'",
+                    answerId, questionId, answer.getNextQuestionId());
+        }
+    }
+
+    private boolean applyNextQuestion(ApplyNextQuestionParams params) throws ServiceException {
+        final Question question = findQuestion(params.questionId, params.questionNotFoundErrorMessage);
+
+        final SessionAttributes sessionAttributes = new SessionAttributes(params.sessionAdapter);
 
         boolean completed = false;
+        List<Answer> answers = new ArrayList<>();
+
         if (question.getElementType() == QuestElementType.QUESTION) {
-            for (Long answerId : question.getAnswerIds()) {
-                Answer answer = answerRepository.findById(answerId).orElse(null);
-
-                if (answer == null)
-                    throw new ServletException(answerNotFoundErrorMessage);
-
-                answers.add(answer);
-            }
+            answers = findAnswers(question.getAnswerIds(), params.answerNotFoundErrorMessage);
         } else {
             completed = true;
 
-            final User user = sessionWrapper.getUser();
-            user.incrementPlayedGamesCount();
-            sessionWrapper.setUser(user);
+            incrementPlayedGamesCount(sessionAttributes);
 
-            userRepository.save(user);
-
-            log.info("Quest [id='{}'] has been finished: {}.", quest.getId(), question.getElementType());
+            log.info("Quest [id='{}'] has been finished: {}.", params.quest.getId(), question.getElementType());
         }
 
-        QuestionDto questionPayload = createQuestionPayload(question, answers);
-        request.setAttribute("question", questionPayload);
+        final RequestAttributes requestAttributes = new RequestAttributes(params.requestAdapter);
+        requestAttributes.setQuestion(createQuestionPayload(question, answers));
+        requestAttributes.setQuest(new QuestDto(params.quest.getName(), params.quest.getDescription(), completed));
 
-        request.setAttribute("quest", new QuestDto(quest.getName(), completed));
+        sessionAttributes.setQuestionId(params.questionId);
 
-        sessionWrapper.setQuestionId(questionId);
+        return completed;
+    }
+
+    private Question findQuestion(long questionId, String questionNotFoundErrorMessage) throws ServiceException {
+        Question question = questionRepository.findById(questionId).orElse(null);
+
+        if (question == null)
+            throw new ServiceException(questionNotFoundErrorMessage);
+
+        return question;
+    }
+
+    private List<Answer> findAnswers(List<Long> answerIds, String answerNotFoundErrorMessage) throws ServiceException {
+        List<Answer> answers = new ArrayList<>();
+
+        for (Long answerId : answerIds) {
+            Answer answer = answerRepository.findById(answerId).orElse(null);
+
+            if (answer == null)
+                throw new ServiceException(answerNotFoundErrorMessage);
+
+            answers.add(answer);
+        }
+
+        return answers;
+    }
+
+    private void incrementPlayedGamesCount(SessionAttributes sessionAttributes) {
+        final User user = sessionAttributes.getUser();
+        user.incrementPlayedGamesCount();
+        sessionAttributes.setUser(user);
+
+        userRepository.save(user);
     }
 
     private QuestionDto createQuestionPayload(Question question, List<Answer> answers) {
@@ -96,5 +176,15 @@ public class QuestService {
         }
 
         return new QuestionDto(question.getId(), question.getText(), answerPayloads);
+    }
+
+    @AllArgsConstructor
+    private final class ApplyNextQuestionParams {
+        private final RequestAdapter requestAdapter;
+        private final SessionAdapter sessionAdapter;
+        private final Quest quest;
+        private final long questionId;
+        private final String questionNotFoundErrorMessage;
+        private final String answerNotFoundErrorMessage;
     }
 }

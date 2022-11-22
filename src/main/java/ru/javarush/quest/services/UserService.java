@@ -10,6 +10,17 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
+    public User findOrCreateUser(String username) {
+        User user = find(username);
+
+        if (user == null) {
+            user = new User(username);
+            save(user);
+        }
+
+        return user;
+    }
+
     public User find(String name) {
         return userRepository.findByName(name).orElse(null);
     }

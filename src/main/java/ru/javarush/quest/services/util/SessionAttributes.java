@@ -1,24 +1,17 @@
-package ru.javarush.quest.util;
+package ru.javarush.quest.services.util;
 
 import ru.javarush.quest.entities.User;
+import ru.javarush.quest.services.adapters.SessionAdapter;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-
-public class SessionAttributesWrapper {
+public final class SessionAttributes {
     private static final String USER = "user";
-
     private static final String QUEST_ID = "questId";
     private static final String QUESTION_ID = "questionId";
 
-    private final HttpSession session;
+    private final SessionAdapter session;
 
-    public SessionAttributesWrapper(HttpSession session) {
+    public SessionAttributes(SessionAdapter session) {
         this.session = session;
-    }
-
-    public SessionAttributesWrapper(HttpServletRequest request) {
-        this(request.getSession());
     }
 
     public Long getQuestId() {

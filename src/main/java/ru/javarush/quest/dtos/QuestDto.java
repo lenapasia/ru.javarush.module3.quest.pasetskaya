@@ -11,5 +11,8 @@ public class QuestDto {
     private String name;
 
     @NonNull
+    private String description;
+
+    @NonNull
     private boolean completed;
 }

@@ -14,7 +14,8 @@ public final class ServletUtil {
         throw new IllegalStateException("Utility class");
     }
 
-    public static void reqRespForward(HttpServletRequest request, HttpServletResponse response, String jspName) throws ServletException, IOException {
+    public static void reqRespForward(HttpServletRequest request, HttpServletResponse response, String jspName)
+            throws ServletException, IOException {
         String path = new Formatter().format("WEB-INF/%s.jsp", jspName).toString();
         RequestDispatcher requestDispatcher = request.getRequestDispatcher(path);
         requestDispatcher.forward(request, response);

@@ -1,4 +1,4 @@
-package ru.javarush.quest.repositories.locator.quest;
+package ru.javarush.quest.defaults;
 
 import ru.javarush.quest.entities.Answer;
 
