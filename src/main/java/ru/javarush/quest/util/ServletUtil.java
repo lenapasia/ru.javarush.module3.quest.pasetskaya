@@ -8,9 +8,7 @@ import java.io.IOException;
 
 public final class ServletUtil {
 
-    private ServletUtil() {
-        throw new IllegalStateException("Utility class");
-    }
+    private ServletUtil() {}
 
     public static void reqRespForward(HttpServletRequest request, HttpServletResponse response, String jspName)
             throws ServletException, IOException {

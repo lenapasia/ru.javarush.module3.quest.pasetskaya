@@ -46,12 +46,26 @@ public class QuestService {
         return quest.get();
     }
 
-    private Question findQuestion(long questionId) {
-        return questionRepository.findById(questionId).orElse(null);
+    private Question findQuestion(long questionId) throws ServiceException {
+        return findQuestion(questionId, "Question not found.");
     }
 
-    private Answer findAnswer(long answerId) {
-        return answerRepository.findById(answerId).orElse(null);
+    private Question findQuestion(long questionId, String questionNotFoundErrorMessage) throws ServiceException {
+        Optional<Question> question = questionRepository.findById(questionId);
+        if (question.isEmpty())
+            throw new ServiceException(questionNotFoundErrorMessage);
+        return question.get();
+    }
+
+    private Answer findAnswer(long answerId) throws ServiceException {
+        return findAnswer(answerId, "Answer not found.");
+    }
+
+    private Answer findAnswer(long answerId, String answerNotFoundErrorMessage) throws ServiceException {
+        Optional<Answer> answer = answerRepository.findById(answerId);
+        if (answer.isEmpty())
+            throw new ServiceException(answerNotFoundErrorMessage);
+        return answer.get();
     }
 
     public void setAvailableQuest(RequestAdapter requestAdapter, long questId) throws ServiceException {
@@ -88,26 +102,22 @@ public class QuestService {
 
         final SessionAttributes sessionAttributes = new SessionAttributes(sessionAdapter);
 
+        final Long questId = sessionAttributes.getQuestId();
+        if (questId == null)
+            throw new ServiceException("Has no active quest.");
+
         final Long questionId = sessionAttributes.getQuestionId();
         if (questionId == null)
             throw new ServiceException("Has no active question.");
 
-        if (sessionAttributes.getQuestId() == null)
-            throw new ServiceException("Has no active quest.");
-
-        final Quest quest = findQuest(sessionAttributes.getQuestId());
+        final Quest quest = findQuest(questId);
 
         final Question question = findQuestion(questionId);
-        if (question == null)
-            throw new ServiceException("Question doesn't exist.");
 
         if (!question.hasAnswer(answerId))
             throw new ServiceException("Answer doesn't belong to question.");
 
         final Answer answer = findAnswer(answerId);
-
-        if (answer == null)
-            throw new ServiceException("Answer not found.");
 
         final boolean completed = applyNextQuestion(new ApplyNextQuestionParams(
                 requestAdapter, sessionAdapter, quest, answer.getNextQuestionId(),
@@ -147,27 +157,12 @@ public class QuestService {
         return completed;
     }
 
-    private Question findQuestion(long questionId, String questionNotFoundErrorMessage) throws ServiceException {
-        Question question = questionRepository.findById(questionId).orElse(null);
-
-        if (question == null)
-            throw new ServiceException(questionNotFoundErrorMessage);
-
-        return question;
-    }
-
     private List<Answer> findAnswers(List<Long> answerIds, String answerNotFoundErrorMessage) throws ServiceException {
-        List<Answer> answers = new ArrayList<>();
-
+        final List<Answer> answers = new ArrayList<>();
         for (Long answerId : answerIds) {
-            Answer answer = answerRepository.findById(answerId).orElse(null);
-
-            if (answer == null)
-                throw new ServiceException(answerNotFoundErrorMessage);
-
+            final Answer answer = findAnswer(answerId, answerNotFoundErrorMessage);
             answers.add(answer);
         }
-
         return answers;
     }
 
