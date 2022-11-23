@@ -1,5 +1,6 @@
 package ru.javarush.quest.context;
 
+import ru.javarush.quest.defaults.DefaultQuestsBuilder;
 import ru.javarush.quest.entities.Answer;
 import ru.javarush.quest.entities.Quest;
 import ru.javarush.quest.entities.Question;
@@ -11,12 +12,10 @@ import ru.javarush.quest.repositories.impl.AnswerRepositoryImpl;
 import ru.javarush.quest.repositories.impl.QuestRepositoryImpl;
 import ru.javarush.quest.repositories.impl.QuestionRepositoryImpl;
 import ru.javarush.quest.repositories.impl.UserRepositoryImpl;
-import ru.javarush.quest.defaults.DefaultQuestsBuilder;
 import ru.javarush.quest.services.QuestService;
 import ru.javarush.quest.services.UserService;
 
 import java.lang.reflect.Type;
-import java.util.Formatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,7 +33,6 @@ class ApplicationContextInitializer {
     private void initRepositories() {
         userRepository = new UserRepositoryImpl(new HashMap<>());
 
-        //TODO possible improvement: load from json, if not exists then generate from defaults
         initRepositoriesWithDefaults();
     }
 
@@ -61,7 +59,7 @@ class ApplicationContextInitializer {
             return new UserService(userRepository);
         }
 
-        throw new RuntimeException(new Formatter().format(
-                "Unregistered service with class type '%s'.", serviceType).toString());
+        throw new IllegalArgumentException(String.format(
+                "Unregistered service with class type '%s'.", serviceType));
     }
 }

@@ -22,7 +22,7 @@ final class QuestionBuilder {
             if (answerIds != null && !answerIds.isEmpty())
                 elementType = QuestElementType.QUESTION;
             else
-                throw new RuntimeException("Element type is not defined.");
+                throw new IllegalStateException("Element type is not defined.");
         }
 
         Question question = new Question(context.newQuestionId(), elementType, text, answerIds);

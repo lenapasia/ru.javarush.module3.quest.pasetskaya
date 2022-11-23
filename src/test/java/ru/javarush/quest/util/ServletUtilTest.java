@@ -40,8 +40,17 @@ class ServletUtilTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"", "NotInteger"})
-    void getIdReturnsNull(String idValue) {
+    @ValueSource(strings = {"", "  ", "NotInteger"})
+    void getIdReturnsNullWhenParameterIsNotIntegerString(String idValue) {
+        getIdReturnsNull(idValue);
+    }
+
+    @Test
+    void getIdReturnsNullWhenParameterIsNull() {
+        getIdReturnsNull(null);
+    }
+
+    private void getIdReturnsNull(String idValue) {
         final HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
         Mockito.doReturn(idValue).when(request).getParameter("id");
 

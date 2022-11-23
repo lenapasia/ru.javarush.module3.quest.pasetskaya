@@ -44,7 +44,7 @@ public class SetUserServlet extends ApplicationServlet {
 
         saveInSession(request, user);
 
-        final long questId = 1L;
+        final long questId = getQuestId();
 
         try {
             questService.setAvailableQuest(createRequestAdapter(request), questId);

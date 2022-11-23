@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import static ru.javarush.quest.servlets.context.ServletContextAttributes.APP_CONTEXT;
 
 public abstract class ApplicationServlet extends HttpServlet {
+    private static final long DEFAULT_QUEST_ID = 1;
 
     private ApplicationContext applicationContext;
 
@@ -32,5 +33,9 @@ public abstract class ApplicationServlet extends HttpServlet {
 
     protected ServletSessionAdapter createSessionAdapter(HttpServletRequest request) {
         return new ServletSessionAdapter(request);
+    }
+
+    protected long getQuestId() {
+        return DEFAULT_QUEST_ID;
     }
 }

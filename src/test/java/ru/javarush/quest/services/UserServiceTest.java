@@ -13,13 +13,31 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 class UserServiceTest {
 
     @ParameterizedTest
-    @ValueSource(strings = {"User1"})
-    void findOrCreateUser(String username) {
-        final UserService userService = new UserService(Mockito.mock(UserRepository.class));
+    @ValueSource(strings = {"NotExistingUser1"})
+    void findOrCreateUserWhenUserNotExists(String username) {
+        final UserRepository userRepository = Mockito.mock(UserRepository.class);
+        final UserService userService = new UserService(userRepository);
+
         final User actual = userService.findOrCreateUser(username);
+        Mockito.verify(userRepository).save(Mockito.any());
 
         assertSame(username, actual.getName());
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"ExistingUser1"})
+    void findOrCreateUserWhenUserExists(String username) {
+        final User existingUser = new User(username);
+        final UserRepository userRepository = Mockito.mock(UserRepository.class);
+        Mockito.doReturn(Optional.of(existingUser)).when(userRepository).findByName(username);
+
+        final UserService userService = new UserService(userRepository);
+        final User actual = userService.findOrCreateUser(username);
+        Mockito.verify(userRepository, Mockito.never()).save(existingUser);
+
+        assertSame(username, actual.getName());
+    }
+
 
     @ParameterizedTest
     @ValueSource(strings = {"FindUser1"})

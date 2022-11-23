@@ -1,8 +1,9 @@
-package ru.javarush.quest.repositories;
+package ru.javarush.quest.repositories.impl;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import ru.javarush.quest.entities.User;
+import ru.javarush.quest.repositories.UserRepository;
 import ru.javarush.quest.repositories.impl.UserRepositoryImpl;
 
 import java.util.HashMap;
@@ -11,7 +12,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
 
-class UserRepositoryTest {
+class UserRepositoryImplTest {
 
     @Test
     void findByName() {

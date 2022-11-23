@@ -31,8 +31,7 @@ public class StartQuestServlet extends ApplicationServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         log.trace("Starting quest ...");
 
-        //TODO possible improvement: add second quest and allow user to select quest from dropdown menu
-        final long questId = 1L;
+        final long questId = getQuestId();
 
         try {
             questService.startQuest(createRequestAdapter(request), createSessionAdapter(request), questId);

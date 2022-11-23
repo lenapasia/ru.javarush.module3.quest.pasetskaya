@@ -34,7 +34,7 @@ class QuestServiceTest {
         ServiceException exception = assertThrows(ServiceException.class, () ->
                 questService.setAvailableQuest(requestAdapter, 0));
 
-        assertEquals(exception.getMessage(), "Quest not found.");
+        assertEquals("Quest not found.", exception.getMessage());
     }
 
     @Test
