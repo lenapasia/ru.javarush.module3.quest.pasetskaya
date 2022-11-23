@@ -19,6 +19,7 @@ public abstract class ApplicationServlet extends HttpServlet {
         return applicationContext;
     }
 
+    @Override
     public void init() throws ServletException {
         super.init();
 

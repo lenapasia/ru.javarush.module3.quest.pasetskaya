@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 import ru.javarush.quest.entities.User;
 import ru.javarush.quest.services.QuestService;
 import ru.javarush.quest.services.UserService;
+import ru.javarush.quest.services.exceptions.ServiceException;
 import ru.javarush.quest.services.util.SessionAttributes;
 import ru.javarush.quest.util.JspNames;
 
@@ -44,7 +45,13 @@ public class SetUserServlet extends ApplicationServlet {
         saveInSession(request, user);
 
         final long questId = 1L;
-        questService.setAvailableQuest(createRequestAdapter(request), questId);
+
+        try {
+            questService.setAvailableQuest(createRequestAdapter(request), questId);
+        } catch (ServiceException e) {
+            log.error(e);
+            throw new ServletException(e.getMessage());
+        }
 
         redirectToStartQuestPage(request, response);
     }

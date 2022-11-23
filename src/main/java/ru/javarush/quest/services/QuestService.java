@@ -19,6 +19,7 @@ import ru.javarush.quest.services.util.SessionAttributes;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class QuestService {
 
@@ -38,8 +39,11 @@ public class QuestService {
 
     private final UserRepository userRepository;
 
-    private Quest findQuest(long questId) {
-        return questRepository.findById(questId).orElse(null);
+    private Quest findQuest(long questId) throws ServiceException {
+        Optional<Quest> quest = questRepository.findById(questId);
+        if (quest.isEmpty())
+            throw new ServiceException("Quest not found.");
+        return quest.get();
     }
 
     private Question findQuestion(long questionId) {
@@ -50,7 +54,7 @@ public class QuestService {
         return answerRepository.findById(answerId).orElse(null);
     }
 
-    public void setAvailableQuest(RequestAdapter requestAdapter, long questId) {
+    public void setAvailableQuest(RequestAdapter requestAdapter, long questId) throws ServiceException {
         final Quest quest = findQuest(questId);
         final RequestAttributes requestAttributes = new RequestAttributes(requestAdapter);
         requestAttributes.setAvailableQuest(new QuestDto(quest.getName(), quest.getDescription(), false));
@@ -64,8 +68,6 @@ public class QuestService {
         clearSession(sessionAttributes);
 
         final Quest quest = findQuest(questId);
-        if (quest == null)
-            throw new ServiceException("Quest not found");
 
         applyNextQuestion(new ApplyNextQuestionParams(requestAdapter, sessionAdapter, quest, quest.getFirstQuestionId(),
                 "Malformed quest: first question not found",
@@ -89,6 +91,9 @@ public class QuestService {
         final Long questionId = sessionAttributes.getQuestionId();
         if (questionId == null)
             throw new ServiceException("Has no active question.");
+
+        if (sessionAttributes.getQuestId() == null)
+            throw new ServiceException("Has no active quest.");
 
         final Quest quest = findQuest(sessionAttributes.getQuestId());
 

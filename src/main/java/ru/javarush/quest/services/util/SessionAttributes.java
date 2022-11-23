@@ -4,9 +4,9 @@ import ru.javarush.quest.entities.User;
 import ru.javarush.quest.services.adapters.SessionAdapter;
 
 public final class SessionAttributes {
-    private static final String USER = "user";
-    private static final String QUEST_ID = "questId";
-    private static final String QUESTION_ID = "questionId";
+    public static final String USER = "user";
+    public static final String QUEST_ID = "questId";
+    public static final String QUESTION_ID = "questionId";
 
     private final SessionAdapter session;
 

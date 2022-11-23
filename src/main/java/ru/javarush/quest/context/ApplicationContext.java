@@ -8,7 +8,7 @@ public class ApplicationContext {
     private ApplicationContextInitializer initializer;
 
     public <T> T getService(Class<T> clazz) {
-        return (T) getService((Type) clazz);
+        return (T) getService((Type)clazz);
     }
 
     private Object getService(Type type) {

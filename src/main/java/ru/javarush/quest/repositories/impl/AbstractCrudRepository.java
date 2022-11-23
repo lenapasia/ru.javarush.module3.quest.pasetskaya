@@ -9,7 +9,7 @@ public abstract class AbstractCrudRepository<E> implements CrudRepository<E> {
 
     protected final Map<Long, E> idToEntity;
 
-    public AbstractCrudRepository(Map<Long, E> idToEntity) {
+    protected AbstractCrudRepository(Map<Long, E> idToEntity) {
         this.idToEntity = idToEntity;
     }
 

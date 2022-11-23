@@ -1,10 +1,8 @@
 package ru.javarush.quest.repositories.impl;
 
-import ru.javarush.quest.entities.Quest;
 import ru.javarush.quest.entities.User;
 import ru.javarush.quest.repositories.UserRepository;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 

@@ -4,9 +4,7 @@ import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
-import java.util.Formatter;
 
 public final class ServletUtil {
 
@@ -16,7 +14,7 @@ public final class ServletUtil {
 
     public static void reqRespForward(HttpServletRequest request, HttpServletResponse response, String jspName)
             throws ServletException, IOException {
-        String path = new Formatter().format("WEB-INF/%s.jsp", jspName).toString();
+        String path = String.format("WEB-INF/%s.jsp", jspName);
         RequestDispatcher requestDispatcher = request.getRequestDispatcher(path);
         requestDispatcher.forward(request, response);
     }
@@ -29,5 +27,4 @@ public final class ServletUtil {
         boolean isNumeric = id.chars().allMatch(Character::isDigit);
         return isNumeric ? Long.parseLong(id) : null;
     }
-
 }
