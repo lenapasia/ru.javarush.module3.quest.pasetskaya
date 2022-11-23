@@ -13,10 +13,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@WebServlet(name = "StartQuestServlet", value = "/start-quest")
-public class StartQuestServlet extends ApplicationServlet {
+@WebServlet(name = "ApplyAnswerServlet", value = "/apply-answer")
+public class ApplyAnswerServlet extends ApplicationServlet {
 
-    private static final Logger log = LogManager.getLogger(StartQuestServlet.class);
+    private static final Logger log = LogManager.getLogger(ApplyAnswerServlet.class);
 
     private QuestService questService;
 
@@ -29,17 +29,18 @@ public class StartQuestServlet extends ApplicationServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        log.trace("Starting quest ...");
+        log.trace("Processing answer ...");
 
-        final long questId = getQuestId();
+        final Long answerId = ServletUtil.getId(request);
+        if (answerId == null)
+            throw new ServletException("Parameter 'id' is missing.");
 
         try {
-            questService.startQuest(createRequestAdapter(request), createSessionAdapter(request), questId);
+            questService.applyAnswer(createRequestAdapter(request), createSessionAdapter(request), answerId);
         } catch (ServiceException e) {
             log.error(e);
             throw new ServletException(e.getMessage());
         }
-
         ServletUtil.reqRespForward(request, response, JspNames.QUEST);
     }
 }
